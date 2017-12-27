@@ -34,6 +34,8 @@ public class Reflection {
             public static final String DOUBLE = "java.lang.Double";
             public static final String FLOAT = "java.lang.Float";
             public static final String BOOLEAN = "java.lang.Boolean";
+            public static final String TIME = "java.time.LocalTime";
+            public static final String DATE = "java.time.LocalDate";
             public static final String DATETIME = "java.time.LocalDateTime";
 
         }
