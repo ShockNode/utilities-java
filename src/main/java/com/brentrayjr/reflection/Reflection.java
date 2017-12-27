@@ -6,14 +6,15 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 
 public class Reflection {
 
-    static class TypeName {
+    public static class TypeName {
 
-        static class Primatives {
+        public static class Primatives {
 
             public static final String INT = "int";
             public static final String DOUBLE = "double";
@@ -26,7 +27,7 @@ public class Reflection {
 
         }
 
-        static class Objects {
+        public static class Objects {
 
             public static final String STRING = "java.lang.String";
             public static final String INTEGER = "java.lang.Integer";
@@ -39,28 +40,43 @@ public class Reflection {
 
     }
 
+    public static Object runGetter(Object object, String fieldName, boolean useIsForBoolean) throws IllegalAccessException, InvocationTargetException {
 
+        if(object == null){
+            return null;
+        }
 
-    public static Object runGetter(Object object, String fieldName) throws IllegalAccessException, InvocationTargetException {
-
-        String name = (Reflection.isType(getField(object, fieldName), TypeName.Objects.BOOLEAN)) ? String.format("is%s", capitalize(fieldName)):String.format("get%s", capitalize(fieldName));
+        String name = (useIsForBoolean&&isTypeOfAny(getField(object, fieldName), TypeName.Primatives.BOOLEAN, TypeName.Objects.BOOLEAN)) ? String.format("is%s", capitalize(fieldName)):String.format("get%s", capitalize(fieldName));
 
         Method method = getMethod(object.getClass(), name);
         return method.invoke(object);
     }
 
-    public static <O> O instanceOf(Class<O> objectClass, Object... values) throws NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException {
+    public static <O> O instanceOf(Class<O> objectClass, Class<?>[] parameterClasses, Object... values) throws NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException, NullNotSupportedException {
 
-        Class[] constructorClasses = Arrays.stream(values).map(Object::getClass).toArray(Class[]::new);
+        if(objectClass == null){
+            return null;
+        }
 
-        Constructor<O> constructor = objectClass.getConstructor(constructorClasses);
-        return constructor.newInstance(values);
+        if(parameterClasses != null){ for(Class<?> parameterClass: parameterClasses){ if(parameterClass==null){ throw new NullNotSupportedException(); } } }
+        
+        Constructor<O> constructor = (parameterClasses==null) ? getConstructor(objectClass):getConstructor(objectClass, parameterClasses);
+        return (O) constructor.newInstance(values);
 
     }
 
     public static boolean isInstanceOf(Class<?> clazz, Class<?>... classes){
 
         for(Class<?> superclass: classes){
+
+            if((clazz == null&&superclass==null)){
+                return true;
+            }
+
+            if(superclass==null||clazz == null){
+                return false;
+            }
+
             if(!superclass.isAssignableFrom(clazz)){
                 return false;
             }
@@ -72,15 +88,31 @@ public class Reflection {
     public static boolean isInstanceOfAny(Class<?> clazz, Class<?>... classes){
 
         for(Class<?> superclass: classes){
+
+            if((clazz == null&&superclass==null)){
+                return true;
+            }
+
+            if(superclass==null||clazz == null){
+                return false;
+            }
+
             if(superclass.isAssignableFrom(clazz)){
                 return true;
             }
         }
 
+
         return false;
     }
 
-    public static Object run(Object object, String name, Object... values) throws Exception {
+    public static Object run(Object object, String name, Class<?>[] parameterClasses, Object... values) throws Exception {
+
+        if(object == null){
+            return null;
+        }
+
+        if(parameterClasses != null){ for(Class<?> parameterClass: parameterClasses){ if(parameterClass==null){ throw new NullNotSupportedException(); } } }
 
         name = capitalize(name);
         Class[] methodClasses = Arrays.stream(values).map(Object::getClass).toArray(Class[]::new);
@@ -89,17 +121,18 @@ public class Reflection {
 
     }
 
-    public static <O, V> Object runSetter(O object, String fieldName, V value){
-
+    public static <O, V> boolean runSetter(O object, String fieldName, V value){
+        if(object == null){ return false; }
         String name = String.format("set%s", capitalize(fieldName));
 
         Method method = getMethod(object.getClass(), name, value.getClass());
-        try { return method.invoke(object, (V) value); }
-        catch (IllegalAccessException|InvocationTargetException e){ return null; }
+        try { method.invoke(object, (V) value); return true; }
+        catch (IllegalAccessException|InvocationTargetException e){ return false; }
 
     }
 
-    public static boolean isType(Field field, String... types){
+    public static boolean isTypeOfAny(Field field, String... types){
+        if(field == null){ return false; }
         for(String type: types){
             if(field.getType().getTypeName().equals(type)){
                 return true;
@@ -108,19 +141,36 @@ public class Reflection {
         return false;
     }
 
+    public static boolean isType(Field field, String... types){
+        if(field == null){ return false; }
+        for(String type: types){
+            if(!field.getType().getTypeName().equals(type)){
+                return false;
+            }
+        }
+        return true;
+    }
+
     public static String getName(Field field){
+        if(field == null){ return ""; }
         return field.getName();
     }
 
     public static String getType(Field field){
+        if(field == null){ return ""; }
         return field.getType().getTypeName();
     }
 
     public static String getType(Object value){
+        if(value == null){ return ""; }
         return value.getClass().getTypeName();
     }
 
     public static Field getField(Object object, String name, Class<?>... parameters){
+
+        if(object==null){ return null; }
+
+        for(Class<?> parameter: parameters){ if(parameter==null){ return null; } }
 
         for(Field field: getHierarchyFields(object.getClass(), Object.class)){
             if(field.getName().equals(name)){
@@ -134,6 +184,10 @@ public class Reflection {
 
     public static Method getMethod(Class<?> clazz, String name, Class<?>... parameters){
 
+        if(clazz==null){ return null; }
+
+        for(Class<?> parameter: parameters){ if(parameter==null){ return null; } }
+
         try { return clazz.getDeclaredMethod(name, parameters); }
         catch (NoSuchMethodException e) {
             Class<?> parent = clazz.getSuperclass();
@@ -143,9 +197,24 @@ public class Reflection {
 
     }
 
+    public static <T> Constructor<T> getConstructor(Class<T> clazz, Class<?>... parameters){
+
+        if(clazz==null){ return null; }
+
+        for(Class<?> parameter: parameters){ if(parameter==null){ return null; } }
+
+        try { return clazz.getDeclaredConstructor(parameters); }
+        catch (NoSuchMethodException e) {
+            return null;
+        }
+
+    }
+
     public static List<Field> getHierarchyFields(Class<?> start, Class<?> end) {
 
-        List<Field> fields = new ArrayList<Field>();
+        if(start == null){ return Collections.emptyList(); }
+
+        List<Field> fields = new ArrayList<>();
         Class<?> parent = start.getSuperclass();
 
         if (parent != null && (end == null || !(parent.equals(end)))) {
@@ -158,22 +227,24 @@ public class Reflection {
     }
 
     public static List<Field> getHierarchyFields(Class<?> start) {
-
+        if(start == null){ return Collections.emptyList(); }
         return getHierarchyFields(start, null);
     }
 
     public static List<Field> getHierarchyFields(Object start) {
-
+        if(start == null){ return Collections.emptyList(); }
         return getHierarchyFields(start.getClass(), null);
     }
 
     public static List<Field> getHierarchyFields(Object start, Class<?> end) {
-
+        if(start == null){ return Collections.emptyList(); }
         return getHierarchyFields(start.getClass(), end);
     }
 
 
     public static List<Method> getHierarchyMethods(Class<?> start, Class<?> end) {
+
+        if(start == null){ return Collections.emptyList(); }
 
         List<Method> methods = new ArrayList<>();
         Class<?> parent = start.getSuperclass();
@@ -188,18 +259,50 @@ public class Reflection {
     }
 
     public static List<Method> getHierarchyMethods(Class<?> start) {
-
+        if(start == null){ return Collections.emptyList(); }
         return getHierarchyMethods(start, null);
     }
 
     public static List<Method> getHierarchyMethods(Object start) {
-
+        if(start == null){ return Collections.emptyList(); }
         return getHierarchyMethods(start.getClass(), null);
     }
 
     public static List<Method> getHierarchyMethods(Object start, Class<?> end) {
-
+        if(start == null){ return Collections.emptyList(); }
         return getHierarchyMethods(start.getClass(), end);
+    }
+    
+
+    public static List<Constructor> getHierarchyConstructors(Class<?> start, Class<?> end) {
+
+        if(start == null){ return Collections.emptyList(); }
+
+        List<Constructor> constructors = new ArrayList<>();
+        Class<?> parent = start.getSuperclass();
+
+        if (parent != null && (end == null || !(parent.equals(end)))) {
+            constructors.addAll(getHierarchyConstructors(parent, end));
+        }
+
+        constructors.addAll(Arrays.asList(start.getDeclaredConstructors()));
+
+        return constructors;
+    }
+
+    public static List<Constructor> getHierarchyConstructors(Class<?> start) {
+        if(start == null){ return Collections.emptyList(); }
+        return getHierarchyConstructors(start, null);
+    }
+
+    public static List<Constructor> getHierarchyConstructors(Object start) {
+        if(start == null){ return Collections.emptyList(); }
+        return getHierarchyConstructors(start.getClass(), null);
+    }
+
+    public static List<Constructor> getHierarchyConstructors(Object start, Class<?> end) {
+        if(start == null){ return Collections.emptyList(); }
+        return getHierarchyConstructors(start.getClass(), end);
     }
 
 
