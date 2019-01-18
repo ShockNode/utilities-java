@@ -1,25 +1,66 @@
-
-import com.shocknode.utilities.reflection.NullNotSupportedException;
-import com.shocknode.utilities.reflection.Parameter;
-import com.shocknode.utilities.reflection.Reflection;
-import com.shocknode.utilities.reflection.TypeName;
-
-import java.util.HashMap;
-import java.util.Map;
+# Utilities (Java)
+## Java library containing various java utility methods
 
 
-public class Suite {
+### Utilities:
 
-    public Suite(){}
+ * Reflection
+ * String
+ * LocalDateTime
+ * Stream
+ * Function, Consumer, Supplier
 
-    public static void main(String[] args) throws Exception {
+## Installation
 
-        Suite suite = new Suite();
-        suite.integerTests();
+
+### 1.) Add repository to build.gradle
+
+```
+
+    maven {
+        url  "https://dl.bintray.com/shocknode/mvn"
+    }
+
+```
+### 2.) Import library:
+```
+
+	compile 'com.shocknode:utilities:0.0.1'
+
+```
+
+## Usage
+
+### Reflection:
+
+```java
+
+public class Objects {
+
+    private Integer integerObject;
+
+    public Objects() {
+
+        this.integerObject = 0;
 
     }
 
-    private void integerTests() throws Exception {
+    public Integer getIntegerObject() {
+        return integerObject;
+    }
+
+    public void setIntegerObject(Integer integerObject) {
+        this.integerObject = integerObject;
+    }
+
+}
+
+```
+
+```java
+
+public class IntegerTests {
+    public static void main(String[] args) throws Exception {
 
         Objects objects = Reflection.instanceOf(Objects.class);
 
@@ -39,14 +80,14 @@ public class Suite {
             Exception exception = null;
             try { Reflection.runSetter(objects, "integer", true); }
             catch (NoSuchMethodException e) { exception = e; }
-            if(exception==null){ throw new Exception("exception expected"); }
+            if(exception==null){ Assert.fail("exception expected"); }
         }
 
         {
             Exception exception = null;
             try { Reflection.runGetter(objects, "integer", boolean.class); }
             catch (NoSuchFieldException e) { exception = e; }
-            if(exception==null){ throw new Exception("exception expected"); }
+            if(exception==null){ Assert.fail("exception expected"); }
         }
 
         Reflection.runSetter(objects, "integerObject",  Parameter.from(Integer.class, 1));
@@ -58,3 +99,32 @@ public class Suite {
     }
 
 }
+
+```
+
+### Strings
+
+```java
+
+	//TODO:
+
+```
+### DateTime
+```java
+
+	//TODO:
+
+```
+### Lambdas
+```java
+
+    //TODO:
+
+```
+
+### Streams
+```java
+
+    //TODO:
+
+```
