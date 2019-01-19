@@ -1,66 +1,26 @@
-
 plugins {
     id 'java-library'
+    id 'maven-publish'
+    id 'signing'
 }
 
-apply plugin: 'maven-publish'
-apply plugin: 'signing'
+group = 'com.shocknode'
+version = '0.0.1'
 
-
-group 'com.shocknode'
-version '0.0.1'
-
-sourceCompatibility = 1.8
-
-repositories {
-    mavenCentral()
-}
-
-dependencies {
-
-    testCompile group: 'junit', name: 'junit', version: '4.12'
-}
-
-task sourceJar(type: Jar) {
-    classifier "sources"
+task sourcesJar(type: Jar) {
     from sourceSets.main.allJava
 }
 
-task javadocJar(type: Jar, dependsOn: javadoc) {
-    classifier "javadoc"
-    from javadoc.destinationDir
-}
-
-artifacts {
-    archives jar
-    archives sourceJar
-    archives javadocJar
-}
-
-task wrapper(type: Wrapper) {
-    gradleVersion = '4.6' //version required
-}
-
-model {
-    tasks.generatePomFileForMavenJavaPublication {
-        destination = file("$buildDir/generated-pom.xml")
-    }
-    tasks.publishMavenJavaPublicationToMavenLocal {
-        dependsOn project.tasks.signArchives
-    }
-    tasks.publishMavenJavaPublicationToMavenRepository {
-        dependsOn project.tasks.signArchives
-    }
-}
-
-signing {
-    sign configurations.archives
+task javadocJar(type: Jar) {
+    from javadoc
 }
 
 publishing {
     publications {
         mavenJava(MavenPublication) {
-
+            from components.java
+            artifact sourcesJar
+            artifact javadocJar
             pom {
                 name = 'Utilities'
                 description = 'Java utility methods'
@@ -84,39 +44,6 @@ publishing {
                     url = 'https://github.com/ShockNode/utilities-java/tree/master'
                 }
             }
-
-            from components.java
-
-            pom.withXml {
-                def pomFile = file("${project.buildDir}/generated-pom.xml")
-                writeTo(pomFile)
-                def pomAscFile = signing.sign(pomFile).signatureFiles[0]
-                artifact(pomAscFile) {
-                    classifier = null
-                    extension = 'pom.asc'
-                }
-            }
-
-            artifact(sourceJar) {
-                classifier = 'sources'
-            }
-            artifact(javadocJar) {
-                classifier = 'javadoc'
-            }
-
-            // create the signed artifacts
-            project.tasks.signArchives.signatureFiles.each {
-                artifact(it) {
-                    def matcher = it.file =~ /-(sources|javadoc)\.jar\.asc$/
-                    if (matcher.find()) {
-                        classifier = matcher.group(1)
-                    } else {
-                        classifier = null
-                    }
-                    extension = 'jar.asc'
-                }
-            }
-
         }
     }
     repositories {
@@ -130,3 +57,13 @@ publishing {
     }
 }
 
+signing {
+    sign publishing.publications.mavenJava
+}
+
+
+javadoc {
+    if(JavaVersion.current().isJava9Compatible()) {
+        options.addBooleanOption('html5', true)
+    }
+}

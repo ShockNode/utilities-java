@@ -27,9 +27,6 @@ public class Lambdas {
         T get() throws E;
     }
 
-    /**
-     * .map(rethrowFunction(name -> Class.forName(name))) or .map(rethrowFunction(Class::forName))
-     */
     public static <T, R, E extends Exception> Function<T, R> applyWithException(FunctionWithException<T, R, E> function) throws E  {
         return t -> {
             try {
