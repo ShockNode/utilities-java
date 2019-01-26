@@ -1,9 +1,6 @@
 package com.shocknode.utilities.reflection;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
+import java.lang.reflect.*;
 import java.util.*;
 import java.util.Arrays;
 import java.util.function.Consumer;
@@ -39,7 +36,7 @@ public class Reflection {
             throw new NullNotSupportedException();
         }
 
-        String name = isTypeOfAny(getField(object, fieldName), TypeName.Primatives.BOOLEAN, TypeName.Objects.BOOLEAN) ? String.format("is%s", capitalize(fieldName)):String.format("get%s", capitalize(fieldName));
+        String name = isTypeOfAny(getField(object, fieldName), TypeName.BOOLEAN, TypeName.BOOLEAN_WRAPPER) ? String.format("is%s", capitalize(fieldName)):String.format("get%s", capitalize(fieldName));
 
         Method method = getMethod(object.getClass(), name);
 
@@ -473,7 +470,7 @@ public class Reflection {
         List<Field> fields = new ArrayList<>();
         Class<?> parent = start.getSuperclass();
 
-        if (parent != null && !(parent.equals(end))) {
+        if (parent != null && !parent.equals(Object.class) &&!(parent.equals(end))) {
             fields.addAll(getHierarchyFields(parent, end));
         }
 
@@ -703,7 +700,73 @@ public class Reflection {
         return getHierarchyConstructors(start.getClass(), end);
     }
 
+    /**
+     *
+     *  returns a list of constructors found up the start object's class hierarchy
+     *
+     * @author              brentlrayjr
+     *
+     * @param object       object to retrieve list from
+     *
+     * @param name       name of list field
+     *
+     * @return class of list field
+     *
+     **/
+    public static Class<?> getListClass(Object object, String name) throws Exception {
+
+        System.out.println(object.getClass());
+        Field listField = getField(object, name);
+        if(!listField.getType().equals(List.class)){
+            System.out.println("1");
+            //TODO:
+            throw new Exception("Not a list!");
+
+         }
+
+        ParameterizedType listType = (ParameterizedType) listField.getGenericType();
+        Type[] classes = listType.getActualTypeArguments();
+        if(classes.length > 0){ return (Class<?>)classes[0]; }
+
+        //TODO:
+        throw new Exception("No type parameter of list!!");
+
+    }
 
 
+    /**
+     *
+     *  returns a list of constructors found up the start object's class hierarchy
+     *
+     * @author              brentlrayjr
+     *
+     * @param object       object to retrieve list from
+     *
+     * @param name       name of list field
+     *
+     * @return list of provided class type
+     *
+     **/
+    @SuppressWarnings("unchecked")
+    public static <T> List<T> getList(Object object, String name, Class<T> listTypeClass) throws Exception {
+        getListClass(object, name);
+        Field field = getField(object, name);
 
-}
+        boolean accessible = field.isAccessible();
+        field.setAccessible(true);
+        List<T> list = (List<T>) field.get(object);
+        field.setAccessible(accessible);
+        return list;
+
+    }
+
+    private static void whileAccessible(Field field, Consumer<Field> consumer) throws Exception {
+
+        boolean accessible = field.isAccessible();
+        field.setAccessible(true);
+        consumer.accept(field);
+        field.setAccessible(accessible);
+
+    }
+
+    }

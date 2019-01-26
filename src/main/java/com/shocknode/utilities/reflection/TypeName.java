@@ -1,8 +1,8 @@
 package com.shocknode.utilities.reflection;
 
-public class TypeName {
+import java.time.Year;
 
-    public static class Primatives {
+public class TypeName {
 
         public static final String INT = "int";
         public static final String DOUBLE = "double";
@@ -13,20 +13,15 @@ public class TypeName {
         public static final String CHAR = "char";
         public static final String BYTE = "byte";
 
-    }
-
-    public static class Objects {
-
+        
         public static final String STRING = "java.lang.String";
         public static final String INTEGER = "java.lang.Integer";
-        public static final String DOUBLE = "java.lang.Double";
-        public static final String FLOAT = "java.lang.Float";
-        public static final String BOOLEAN = "java.lang.Boolean";
-        public static final String LONG = "java.lang.Long";
-        public static final String TIME = "java.time.LocalTime";
-        public static final String DATE = "java.time.LocalDate";
-        public static final String DATETIME = "java.time.LocalDateTime";
+        public static final String DOUBLE_WRAPPER = "java.lang.Double";
+        public static final String FLOAT_WRAPPER = "java.lang.Float";
+        public static final String BOOLEAN_WRAPPER = "java.lang.Boolean";
+        public static final String LONG_WRAPPER = "java.lang.Long";
+        public static final String CHARACTER_WRAPPER = "java.lang.Character";
+        public static final String BYTE_WRAPPER = "java.lang.Byte";
 
-    }
 
 }
