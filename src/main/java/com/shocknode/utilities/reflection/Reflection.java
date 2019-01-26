@@ -1,5 +1,7 @@
 package com.shocknode.utilities.reflection;
 
+import com.shocknode.utilities.Lambdas;
+
 import java.lang.reflect.*;
 import java.util.*;
 import java.util.Arrays;
@@ -702,7 +704,7 @@ public class Reflection {
 
     /**
      *
-     *  returns a list of constructors found up the start object's class hierarchy
+     *  returns the class of list field
      *
      * @author              brentlrayjr
      *
@@ -736,7 +738,7 @@ public class Reflection {
 
     /**
      *
-     *  returns a list of constructors found up the start object's class hierarchy
+     *  returns a list of provided class type
      *
      * @author              brentlrayjr
      *
@@ -764,7 +766,7 @@ public class Reflection {
 
     /**
      *
-     *  returns a list of constructors found up the start object's class hierarchy
+     *  returns object of provided class type
      *
      * @author              brentlrayjr
      *
@@ -786,6 +788,53 @@ public class Reflection {
         T fieldValue = (T) field.get(object);
         field.setAccessible(accessible);
         return fieldValue;
+
+    }
+
+    /**
+     *
+     *  returns a list of list of provided class type from heirarchy fields
+     *
+     * @author              brentlrayjr
+     *
+     * @param object       object to retrieve field values from
+     *
+     * @param typeClass       class type of list to return
+     *
+     * @return list of list of provided class type
+     *
+     **/
+    @SuppressWarnings("unchecked")
+    public static <T> List<List<T>> getHierarchyFieldListsOfClassType(Object object, Class<T> typeClass) throws Exception {
+
+        return getHierarchyFields(object).stream()
+                .filter(field -> field.getType().equals(List.class))
+                .map(Field::getName)
+                .map(Lambdas.applyWithException(name -> getList(object, name, typeClass)))
+                .collect(Collectors.toList());
+
+    }
+
+    /**
+     *
+     *  returns a list of field values by provided class type
+     *
+     * @author              brentlrayjr
+     *
+     * @param object       object to retrieve field values from
+     *
+     * @param typeClass       class type of list to return
+     *
+     * @return list of provided class type
+     *
+     **/
+    @SuppressWarnings("unchecked")
+    public static <T> List<T> getHierarchyFieldValuesOfClassType(Object object, Class<T> typeClass) throws Exception {
+
+        return getHierarchyFields(object).stream()
+                .filter(field -> field.getType().equals(typeClass))
+                .map(Lambdas.applyWithException(field -> (T) field.get(object)))
+                .collect(Collectors.toList());
 
     }
 

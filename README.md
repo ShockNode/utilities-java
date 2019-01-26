@@ -12,20 +12,10 @@
 
 ## Installation
 
-
-### 1.) Add repository to build.gradle
-
+### 1.) Import library:
 ```
 
-    maven {
-        url  "https://dl.bintray.com/shocknode/mvn"
-    }
-
-```
-### 2.) Import library:
-```
-
-	compile 'com.shocknode:utilities:0.0.1'
+	compile 'com.shocknode:utilities:0.0.5'
 
 ```
 
@@ -59,8 +49,19 @@ public class Objects {
 
 ```java
 
-public class IntegerTests {
+public class Suite {
+
+    public Suite(){}
+
     public static void main(String[] args) throws Exception {
+
+        Suite suite = new Suite();
+        suite.integerTests();
+
+
+    }
+
+    private void integerTests() throws Exception {
 
         Objects objects = Reflection.instanceOf(Objects.class);
 
@@ -70,24 +71,24 @@ public class IntegerTests {
         assert Reflection.isInstanceOf(objects.getIntegerObject().getClass(), Integer.class);
         assert !Reflection.isInstanceOf(objects.getIntegerObject().getClass(), Long.class, Double.class, Float.class);
 
-        assert Reflection.isType(Reflection.getField(objects,"integerObject"), TypeName.Objects.INTEGER);
-        assert !Reflection.isType(Reflection.getField(objects,"integerObject"), TypeName.Objects.DOUBLE, TypeName.Primatives.INT);
+        assert Reflection.isType(Reflection.getField(objects,"integerObject"), TypeName.INTEGER);
+        assert !Reflection.isType(Reflection.getField(objects,"integerObject"), TypeName.DOUBLE_WRAPPER, TypeName.INT);
 
-        assert Reflection.isTypeOfAny(Reflection.getField(objects,"integerObject"), TypeName.Objects.INTEGER, TypeName.Primatives.BOOLEAN);
-        assert !Reflection.isTypeOfAny(Reflection.getField(objects,"integerObject"), TypeName.Objects.DOUBLE, TypeName.Primatives.INT);
+        assert Reflection.isTypeOfAny(Reflection.getField(objects,"integerObject"), TypeName.INTEGER, TypeName.BOOLEAN);
+        assert !Reflection.isTypeOfAny(Reflection.getField(objects,"integerObject"), TypeName.DOUBLE_WRAPPER, TypeName.INT);
 
         {
             Exception exception = null;
             try { Reflection.runSetter(objects, "integer", true); }
             catch (NoSuchMethodException e) { exception = e; }
-            if(exception==null){ Assert.fail("exception expected"); }
+            if(exception==null){ throw new Exception("exception expected"); }
         }
 
         {
             Exception exception = null;
             try { Reflection.runGetter(objects, "integer", boolean.class); }
             catch (NoSuchFieldException e) { exception = e; }
-            if(exception==null){ Assert.fail("exception expected"); }
+            if(exception==null){ throw new Exception("exception expected"); }
         }
 
         Reflection.runSetter(objects, "integerObject",  Parameter.from(Integer.class, 1));
@@ -111,14 +112,25 @@ public class IntegerTests {
 ```
 ### DateTime
 ```java
-
+    
 	//TODO:
 
 ```
 ### Lambdas
 ```java
 
-    //TODO:
+    public void lambdas() throws Exception {
+    
+        Arrays.asList("1", "2", "3")
+        .stream()
+        .map(Integer::valueOf)
+        .forEach(consumeWithException(this::except));
+    
+    }
+    
+    public void except(Integer integer) throws Exception{
+        //do something
+    }
 
 ```
 
