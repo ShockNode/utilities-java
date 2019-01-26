@@ -762,6 +762,33 @@ public class Reflection {
 
     }
 
+    /**
+     *
+     *  returns a list of constructors found up the start object's class hierarchy
+     *
+     * @author              brentlrayjr
+     *
+     * @param object       object to retrieve field value from
+     *
+     * @param name       name of list field
+     *
+     * @param typeClass       class type of field value to return
+     *
+     * @return object of provided class type
+     *
+     **/
+    @SuppressWarnings("unchecked")
+    public static <T> T get(Object object, String name, Class<T> typeClass) throws Exception {
+
+        Field field = getField(object, name);
+        boolean accessible = field.isAccessible();
+        field.setAccessible(true);
+        T fieldValue = (T) field.get(object);
+        field.setAccessible(accessible);
+        return fieldValue;
+
+    }
+
     private static void whileAccessible(Field field, Consumer<Field> consumer) throws Exception {
 
         boolean accessible = field.isAccessible();
