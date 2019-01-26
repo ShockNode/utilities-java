@@ -744,6 +744,8 @@ public class Reflection {
      *
      * @param name       name of list field
      *
+     * @param listTypeClass       class type of list to return
+     *
      * @return list of provided class type
      *
      **/
