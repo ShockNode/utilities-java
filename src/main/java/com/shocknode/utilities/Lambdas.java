@@ -7,6 +7,21 @@ import java.util.function.Supplier;
 
 public class Lambdas {
 
+
+    @FunctionalInterface
+    public interface RunnableWithException<E extends Exception> {
+        void run() throws E;
+    }
+
+    public static <E extends Exception> Runnable runWithException(RunnableWithException<E> runnable) throws E  {
+        return () -> {
+
+            try { runnable.run(); }
+            catch (Exception exception) { toss(exception); }
+
+        };
+    }
+
     @FunctionalInterface
     public interface FunctionWithException<T, R, E extends Exception> {
         R apply(T t) throws E;

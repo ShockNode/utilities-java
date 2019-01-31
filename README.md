@@ -15,7 +15,7 @@
 ### 1.) Import library:
 ```
 
-	compile 'com.shocknode:utilities:0.0.5'
+	compile 'com.shocknode:utilities:0.0.6'
 
 ```
 
